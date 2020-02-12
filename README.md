@@ -2,4 +2,4 @@
 ****
 App for managing the household budget.
 
-`Application completely written in vanilla js `
+`Application completely written in vanilla js, html and css`
