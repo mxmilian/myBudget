@@ -28,7 +28,10 @@ var budgetController = (function() {
             var newItem, ID;
 
             if (data.totals[type] > 0) {
-                ID = data.totals[type][data.allItems[type].length - 1].id + 1;
+                ID =
+                    data.totals[type][
+                        data.allItems[type].length - 1
+                    ].id + 1;
             } else {
                 ID = 0;
             }
@@ -45,9 +48,9 @@ var budgetController = (function() {
 
             return newItem;
         },
-        showAllItems: function () {
+        showAllItems: function() {
             console.log(data);
-        }
+        },
     };
 })();
 
@@ -63,10 +66,40 @@ var UIController = (function() {
     return {
         getInput: function() {
             return {
-                type: document.querySelector(DOMstrings.inputType).value,
-                description: document.querySelector(DOMstrings.inputDesc).value,
-                value: document.querySelector(DOMstrings.inputVal).value,
+                type: document.querySelector(
+                    DOMstrings.inputType
+                ).value,
+                description: document.querySelector(
+                    DOMstrings.inputDesc
+                ).value,
+                value: document.querySelector(
+                    DOMstrings.inputVal
+                ).value,
             };
+        },
+        addListItem: function(item, type) {
+            var html, newHtml, element;
+
+            // Create HTML string with placeholder text
+            if(type === 'inc') {
+                element = '.income__list';
+                html =
+                    '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            }
+
+            if(type === 'exp') {
+                element = '.expenses__list';
+                html =
+                    '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            }
+
+            //Replace the placeholder text with some actual data
+            newHtml = html.replace('%id%', item.id);
+            newHtml = newHtml.replace('%description%', item.description);
+            newHtml = newHtml.replace('%value%', item.value);
+
+            //Insert the HTML into the dom
+            document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
         },
         getDOMstrings: function() {
             return DOMstrings;
@@ -79,14 +112,21 @@ var controller = (function(budgetCon, UICon) {
     var DOMstrings = UICon.getDOMstrings();
 
     var setUpEventListeners = function() {
-        var addBtn = document.querySelector(DOMstrings.button_add);
+        var addBtn = document.querySelector(
+            DOMstrings.button_add
+        );
 
         //Add click event listener when someone click on add button
         addBtn.addEventListener('click', handleAddItem);
 
         //Add return key listener when some click it
-        document.addEventListener('keypress', function(event) {
-            if (event.keyCode === 13 || event.which === 13) {
+        document.addEventListener('keypress', function(
+            event
+        ) {
+            if (
+                event.keyCode === 13 ||
+                event.which === 13
+            ) {
                 handleAddItem();
             }
         });
@@ -105,6 +145,7 @@ var controller = (function(budgetCon, UICon) {
         );
         budgetCon.showAllItems();
         // 3. Add the item to the UI controller
+        UICon.addListItem(newItem, dataInput.type);
         // 4. Calculate the budget
         // 5. Display the budget on the UI
     }
