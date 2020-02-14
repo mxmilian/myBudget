@@ -65,10 +65,10 @@ var budgetController = (function() {
 
             data.budget = data.totals.inc - data.totals.exp;
 
-            if(data.totals.inc > 0) {
-                data.percentages = (data.totals.inc / data.totals.exp) * 100;
+            if(data.totals.exp > 0 && data.totals.inc > 0) {
+                data.percentages = Math.floor((data.totals.exp / data.totals.inc) * 100);
             } else {
-                data.percentages = 0;
+                data.percentages = -1;
             }
         },
         getBudget: function() {
@@ -91,7 +91,11 @@ var UIController = (function() {
         inputType: '.add__type',
         inputDesc: '.add__description',
         inputVal: '.add__value',
-        button_add: '.add__btn',
+        buttonAdd: '.add__btn',
+        budgetValue: '.budget__value',
+        budgetIncome: '.budget__income--value',
+        budgetExpenses: '.budget__expenses--value',
+        budgetPercentage: '.budget__expenses--percentage',
     };
 
     return {
@@ -158,8 +162,15 @@ var UIController = (function() {
             fieldsArray[1].classList.toggle('error');
         },
         showProfit: function(profit) {
-            profit.budget > 0 ? document.querySelector('.budget__value').textContent = '+ ' + profit.budget : document.querySelector('.budget__value').textContent = '- ' + profit.budget;
-            console.log(profit.budget);
+            profit.budget >= 0 ? document.querySelector(DOMstrings.budgetValue).textContent = '+ ' + profit.budget : document.querySelector('.budget__value').textContent = '- ' + (profit.budget*-1);
+            document.querySelector(DOMstrings.budgetIncome).textContent = profit.totalInc;
+            document.querySelector(DOMstrings.budgetExpenses).textContent = profit.totalExp;
+            if (profit.percentages > 0) {
+                document.querySelector(DOMstrings.budgetPercentage).textContent = profit.percentages + '%';
+
+            } else {
+                document.querySelector(DOMstrings.budgetPercentage).textContent = '---';
+            }
         },
         errorHandle: function() {
             var element, elements, elementsArray;
@@ -182,7 +193,7 @@ var controller = (function(budgetCon, UICon) {
 
     var setUpEventListeners = function() {
         var addBtn = document.querySelector(
-            DOMstrings.button_add
+            DOMstrings.buttonAdd
         );
 
         //Add click event listener when someone click on add button
@@ -240,8 +251,18 @@ var controller = (function(budgetCon, UICon) {
         }
     }
 
+    var appReset = function () {
+        return {
+            budget: 0,
+            totalInc: 0,
+            totalExp: 0,
+            percentages: -1,
+        }
+    };
+
     return {
         init: function() {
+            UICon.showProfit(appReset());
             setUpEventListeners();
         },
     };
