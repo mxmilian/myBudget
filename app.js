@@ -39,7 +39,7 @@ var budgetController = (function() {
         addItem: function(type, desc, val) {
             var newItem, ID;
 
-            if (data.totals[type] > 0) {
+            if (data.allItems[type].length > 0) {
                 ID =
                     data.allItems[type][
                         data.allItems[type].length - 1
@@ -78,6 +78,23 @@ var budgetController = (function() {
                 totalExp: data.totals.exp,
                 percentages: data.percentages,
             }
+        },
+        deleteItem: function(type, id) {
+            var ids, index;
+            //It creates a array of all ids in in our
+            ids = data.allItems[type].map(function (element) {
+                return element.id;
+            });
+
+            index = ids.indexOf(id);
+
+            console.log(ids);
+            if (index !== -1) {
+                data.allItems[type].splice(index, 1);
+            }
+
+            console.log(data.allItems[type])
+
         },
         showAllItems: function() {
             console.log(data);
@@ -122,13 +139,13 @@ var UIController = (function() {
             if (type === 'inc') {
                 element = '.income__list';
                 html =
-                    '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                    '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
 
             if (type === 'exp') {
                 element = '.expenses__list';
                 html =
-                    '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                    '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
 
             //Replace the placeholder text with some actual data
@@ -260,17 +277,18 @@ var controller = (function(budgetCon, UICon) {
 
         if(item) {
             //Split ID to array with type and ID
+            console.log(item);
            splitItem = item.split('-');
            type = splitItem[0];
-           ID = splitItem[1];
-           console.log(type, ID);
+           ID = parseInt(splitItem[1]);
         }
 
         // 1. Delete the item from the data structure
-
+            budgetCon.deleteItem(type, ID);
         // 2. Delete the item from the UI
 
         // 3. Update and show the new budget
+
     };
     var appReset = function () {
         return {
