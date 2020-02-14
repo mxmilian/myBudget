@@ -101,6 +101,16 @@ var UIController = (function() {
             //Insert the HTML into the dom
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
         },
+        clearInputs: function() {
+          var inputs, files, fieldsArray;
+          inputs = [DOMstrings.inputDesc, DOMstrings.inputVal];
+          files = document.querySelectorAll(inputs);
+          fieldsArray = Array.prototype.slice.call(files);
+          fieldsArray.forEach(function (field) {
+                field.value = '';
+          });
+          fieldsArray[0].focus();
+        },
         getDOMstrings: function() {
             return DOMstrings;
         },
@@ -144,10 +154,12 @@ var controller = (function(budgetCon, UICon) {
             dataInput.value
         );
         budgetCon.showAllItems();
-        // 3. Add the item to the UI controller
+        // 3. Add the item to the UI controller and clear the fields
         UICon.addListItem(newItem, dataInput.type);
-        // 4. Calculate the budget
-        // 5. Display the budget on the UI
+        // 4. Clear the inputs
+        UICon.clearInputs();
+        // 5. Calculate the budget
+        // 6. Display the budget on the UI
     }
 
     return {
