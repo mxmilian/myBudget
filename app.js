@@ -22,14 +22,26 @@ var budgetController = (function() {
             inc: 0,
             exp: 0,
         },
+        budget: 0,
+        percentages: 0,
+
     };
+
+    var calculateTotal = function (type) {
+        var sum = 0;
+        data.allItems[type].forEach(function (element) {
+            sum += element.value;
+        });
+        data.totals[type] = sum;
+    };
+
     return {
         addItem: function(type, desc, val) {
             var newItem, ID;
 
             if (data.totals[type] > 0) {
                 ID =
-                    data.totals[type][
+                    data.allItems[type][
                         data.allItems[type].length - 1
                     ].id + 1;
             } else {
@@ -47,6 +59,25 @@ var budgetController = (function() {
             data.allItems[type].push(newItem);
 
             return newItem;
+        },
+        calculateBudget: function(typeInput){
+            calculateTotal(typeInput);
+
+            data.budget = data.totals.inc - data.totals.exp;
+
+            if(data.totals.inc > 0) {
+                data.percentages = (data.totals.inc / data.totals.exp) * 100;
+            } else {
+                data.percentages = 0;
+            }
+        },
+        getBudget: function() {
+            return {
+                budget: data.budget,
+                totalInc: data.totals.inc,
+                totalExp: data.totals.exp,
+                percentages: data.percentages,
+            }
         },
         showAllItems: function() {
             console.log(data);
@@ -72,22 +103,24 @@ var UIController = (function() {
                 description: document.querySelector(
                     DOMstrings.inputDesc
                 ).value,
-                value: document.querySelector(
-                    DOMstrings.inputVal
-                ).value,
+                value: parseFloat(
+                    document.querySelector(
+                        DOMstrings.inputVal
+                    ).value
+                ),
             };
         },
         addListItem: function(item, type) {
             var html, newHtml, element;
 
             // Create HTML string with placeholder text
-            if(type === 'inc') {
+            if (type === 'inc') {
                 element = '.income__list';
                 html =
                     '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
 
-            if(type === 'exp') {
+            if (type === 'exp') {
                 element = '.expenses__list';
                 html =
                     '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
@@ -95,21 +128,47 @@ var UIController = (function() {
 
             //Replace the placeholder text with some actual data
             newHtml = html.replace('%id%', item.id);
-            newHtml = newHtml.replace('%description%', item.description);
-            newHtml = newHtml.replace('%value%', item.value);
+            newHtml = newHtml.replace(
+                '%description%',
+                item.description
+            );
+            newHtml = newHtml.replace(
+                '%value%',
+                item.value
+            );
 
             //Insert the HTML into the dom
-            document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
+            document
+                .querySelector(element)
+                .insertAdjacentHTML('beforeend', newHtml);
         },
         clearInputs: function() {
-          var inputs, files, fieldsArray;
-          inputs = [DOMstrings.inputDesc, DOMstrings.inputVal];
-          files = document.querySelectorAll(inputs);
-          fieldsArray = Array.prototype.slice.call(files);
-          fieldsArray.forEach(function (field) {
+            var inputs, files, fieldsArray;
+            inputs = [
+                DOMstrings.inputDesc,
+                DOMstrings.inputVal,
+            ];
+            files = document.querySelectorAll(inputs);
+            fieldsArray = Array.prototype.slice.call(files);
+            fieldsArray.forEach(function(field) {
                 field.value = '';
-          });
-          fieldsArray[0].focus();
+            });
+            fieldsArray[0].focus();
+            fieldsArray[0].classList.toggle('error');
+            fieldsArray[1].classList.toggle('error');
+        },
+        showProfit: function(profit) {
+            profit.budget > 0 ? document.querySelector('.budget__value').textContent = '+ ' + profit.budget : document.querySelector('.budget__value').textContent = '- ' + profit.budget;
+            console.log(profit.budget);
+        },
+        errorHandle: function() {
+            var element, elements, elementsArray;
+            elements = [DOMstrings.inputDesc, DOMstrings.inputVal];
+            element = document.querySelectorAll(elements);
+
+            elementsArray = Array.prototype.slice.call(element);
+            elementsArray[0].classList.add('error');
+            elementsArray[1].classList.add('error');
         },
         getDOMstrings: function() {
             return DOMstrings;
@@ -142,24 +201,43 @@ var controller = (function(budgetCon, UICon) {
         });
     };
 
+    var updateBudget = function (dataInput) {
+        var budget;
+        // 1. Calculate the budget
+            budgetCon.calculateBudget(dataInput.type);
+        // 2. Return the budget
+            budget = budgetCon.getBudget();
+        // 3. Display the budget
+            UICon.showProfit(budget);
+    };
+
     function handleAddItem() {
         var dataInput, newItem;
 
         // 1. Get the field input data
         dataInput = UICon.getInput();
-        // 2. Add the item to the budget controller
-        newItem = budgetCon.addItem(
-            dataInput.type,
-            dataInput.description,
-            dataInput.value
-        );
-        budgetCon.showAllItems();
-        // 3. Add the item to the UI controller and clear the fields
-        UICon.addListItem(newItem, dataInput.type);
-        // 4. Clear the inputs
-        UICon.clearInputs();
-        // 5. Calculate the budget
-        // 6. Display the budget on the UI
+
+        if (
+            dataInput.description !== '' &&
+            !isNaN(dataInput.value) &&
+            dataInput.value > 0
+        ) {
+            // 2. Add the item to the budget controller
+            newItem = budgetCon.addItem(
+                dataInput.type,
+                dataInput.description,
+                dataInput.value
+            );
+            budgetCon.showAllItems();
+            // 3. Add the item to the UI controller and clear the fields
+            UICon.addListItem(newItem, dataInput.type);
+            // 4. Clear the inputs
+            UICon.clearInputs();
+            // 5. Handle budget tasks
+            updateBudget(dataInput);
+        } else {
+            UICon.errorHandle();
+        }
     }
 
     return {

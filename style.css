@@ -148,6 +148,10 @@ body {
     transition: border .3s;
 }
 
+.error {
+    border: 1px solid red;
+}
+
 .add__description { width: 400px; }
 .add__value { width: 100px; }
 .add__btn {
