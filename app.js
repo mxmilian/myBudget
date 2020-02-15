@@ -132,6 +132,7 @@ var UIController = (function() {
         budgetPercentage: '.budget__expenses--percentage',
         contrainerDelete: '.container',
         expensesPerc: '.item__percentage',
+        date: '.budget__title--month',
     };
 
     var formatNumber = function(number, type){
@@ -246,6 +247,30 @@ var UIController = (function() {
                     current.textContent = '---';
                 }
             });
+        },
+        diplayDate: function () {
+            var date, month, monthNow, dayNow, dateNow;
+            month = [];
+            month[0] = "January";
+            month[1] = "February";
+            month[2] = "March";
+            month[3] = "April";
+            month[4] = "May";
+            month[5] = "June";
+            month[6] = "July";
+            month[7] = "August";
+            month[8] = "September";
+            month[9] = "October";
+            month[10] = "November";
+            month[11] = "December";
+
+            date = new Date().toLocaleDateString();
+            var dateSplit = date.split('.');
+            dayNow = dateSplit[0];
+            monthNow = month[dateSplit[1]-1];
+            dateNow = dayNow + ' ' + monthNow;
+            document.querySelector(DOMstrings.date).textContent = dateNow;
+
         },
         errorHandle: function() {
             var element, elements, elementsArray, type;
@@ -373,6 +398,7 @@ var controller = (function(budgetCon, UICon) {
         init: function() {
             UICon.showProfit(appReset());
             setUpEventListeners();
+            UICon.diplayDate();
         },
     };
 })(budgetController, UIController);
