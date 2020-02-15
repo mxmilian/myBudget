@@ -80,21 +80,16 @@ var budgetController = (function() {
             }
         },
         deleteItem: function(type, id) {
-            var ids, index;
-            //It creates a array of all ids in in our
-            ids = data.allItems[type].map(function (element) {
+            var arrayOfIDs, index;
+
+            arrayOfIDs = data.allItems[type].map(function (element) {
                 return element.id;
             });
+            index = arrayOfIDs.indexOf(id);
 
-            index = ids.indexOf(id);
-
-            console.log(ids);
-            if (index !== -1) {
+            if(index !== -1){
                 data.allItems[type].splice(index, 1);
             }
-
-            console.log(data.allItems[type])
-
         },
         showAllItems: function() {
             console.log(data);
@@ -190,6 +185,11 @@ var UIController = (function() {
                 document.querySelector(DOMstrings.budgetPercentage).textContent = '---';
             }
         },
+        deleteListItem: function(itemID) {
+            var element;
+            element = document.getElementById(itemID);
+            element.parentNode.removeChild(element);
+        },
         errorHandle: function() {
             var element, elements, elementsArray;
             elements = [DOMstrings.inputDesc, DOMstrings.inputVal];
@@ -229,13 +229,15 @@ var controller = (function(budgetCon, UICon) {
             }
         });
 
-        document.querySelector(DOMstrings.contrainerDelete).addEventListener('click', handleDeleteItem);
+        //document.querySelector(DOMstrings.contrainerDelete).addEventListener('click', handleDeleteItem);
+        document.querySelector(DOMstrings.contrainerDelete).addEventListener('click', handleDeleteItem)
+
     };
 
-    var updateBudget = function (dataInput) {
+    var updateBudget = function (type) {
         var budget;
         // 1. Calculate the budget
-            budgetCon.calculateBudget(dataInput.type);
+            budgetCon.calculateBudget(type);
         // 2. Return the budget
             budget = budgetCon.getBudget();
         // 3. Display the budget
@@ -244,7 +246,6 @@ var controller = (function(budgetCon, UICon) {
 
     function handleAddItem() {
         var dataInput, newItem;
-
         // 1. Get the field input data
         dataInput = UICon.getInput();
 
@@ -265,31 +266,33 @@ var controller = (function(budgetCon, UICon) {
             // 4. Clear the inputs
             UICon.clearInputs();
             // 5. Handle budget tasks
-            updateBudget(dataInput);
+            updateBudget(dataInput.type);
         } else {
             UICon.errorHandle();
         }
     }
 
     var handleDeleteItem = function (event) {
-        var item, splitItem, type, ID;
-        item = event.target.parentNode.parentNode.parentNode.parentNode.id;
+        var itemID, idType, type, id;
+        //After pressing the button we get the id and type
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+        if(itemID) {
+            //Split that id and type inc-0
+            idType = itemID.split('-');
+            type = idType[0];
+            id = parseInt(idType[1]);
 
-        if(item) {
-            //Split ID to array with type and ID
-            console.log(item);
-           splitItem = item.split('-');
-           type = splitItem[0];
-           ID = parseInt(splitItem[1]);
+            // 1. Delete the item from the data structure
+            budgetCon.deleteItem(type, id);
+
+            // 2. Delete the item from the ui
+            UICon.deleteListItem(itemID);
+
+            // 3. Update and show the new budget
+            updateBudget(type);
         }
-
-        // 1. Delete the item from the data structure
-            budgetCon.deleteItem(type, ID);
-        // 2. Delete the item from the UI
-
-        // 3. Update and show the new budget
-
     };
+
     var appReset = function () {
         return {
             budget: 0,
