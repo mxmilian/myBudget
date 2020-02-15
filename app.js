@@ -134,6 +134,20 @@ var UIController = (function() {
         expensesPerc: '.item__percentage',
     };
 
+    var formatNumber = function(number, type){
+        // + or - before a number, exactly 2 decimal points, comma separating the thousands
+        var numberSplit, int, dec;
+        number = Math.abs(number);
+        number = number.toFixed(2);
+        numberSplit = number.split('.');
+        int = numberSplit[0];
+        if(int.length > 3) {
+            int = int.substr(0, int.length - 3) + '.' + int.substr(int.length - 3,3);
+        }
+        dec = numberSplit[1];
+        return (type === 'exp' ? '-' : '+') + ' ' + int +','+ dec;
+
+    };
     return {
         getInput: function() {
             return {
@@ -174,7 +188,7 @@ var UIController = (function() {
             );
             newHtml = newHtml.replace(
                 '%value%',
-                item.value
+                formatNumber(item.value, type)
             );
 
             //Insert the HTML into the dom
@@ -198,9 +212,12 @@ var UIController = (function() {
             fieldsArray[1].classList.toggle('error');
         },
         showProfit: function(profit) {
-            profit.budget >= 0 ? document.querySelector(DOMstrings.budgetValue).textContent = '+ ' + profit.budget : document.querySelector('.budget__value').textContent = '- ' + (profit.budget*-1);
-            document.querySelector(DOMstrings.budgetIncome).textContent = profit.totalInc;
-            document.querySelector(DOMstrings.budgetExpenses).textContent = profit.totalExp;
+
+            var type = profit.budget >= 0 ? 'inc' : 'exp';
+
+            document.querySelector(DOMstrings.budgetValue).textContent =  formatNumber(profit.budget, type);
+            document.querySelector(DOMstrings.budgetIncome).textContent = formatNumber(profit.totalInc, 'inc');
+            document.querySelector(DOMstrings.budgetExpenses).textContent = formatNumber(profit.totalExp, 'exp');
             if (profit.percentages > 0) {
                 document.querySelector(DOMstrings.budgetPercentage).textContent = profit.percentages + '%';
 
@@ -231,7 +248,7 @@ var UIController = (function() {
             });
         },
         errorHandle: function() {
-            var element, elements, elementsArray;
+            var element, elements, elementsArray, type;
             elements = [DOMstrings.inputDesc, DOMstrings.inputVal];
             element = document.querySelectorAll(elements);
 
