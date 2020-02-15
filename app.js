@@ -34,7 +34,6 @@ var budgetController = (function() {
         },
         budget: 0,
         percentages: 0,
-
     };
 
     var calculateTotal = function (type) {
@@ -213,7 +212,6 @@ var UIController = (function() {
             fieldsArray[1].classList.toggle('error');
         },
         showProfit: function(profit) {
-
             var type = profit.budget >= 0 ? 'inc' : 'exp';
 
             document.querySelector(DOMstrings.budgetValue).textContent =  formatNumber(profit.budget, type);
